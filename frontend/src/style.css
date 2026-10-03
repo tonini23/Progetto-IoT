@@ -1,0 +1,31 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f4f6fa;
+  color: #1e293b;
+}
+
+/* riquadro bianco usato in tutte le pagine */
+.card {
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+/* pallini colorati */
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.dot.blue { background-color: #3b82f6; }
+.dot.green { background-color: #10b981; }
+.dot.red { background-color: #ef4444; }
+.dot.amber { background-color: #f59e0b; }
+.dot.grey { background-color: #94a3b8; }
