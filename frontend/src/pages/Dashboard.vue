@@ -94,7 +94,7 @@ const donutStyle = computed(() => {
           <SpotCard v-for="s in rowA" :key="s.id" :id="s.id" :status="statusOf(s.id)" :disabled="s.disabled" />
         </div>
 
-        <p class="lane">&larr; &rarr;</p>
+        <p class="lane"> </p>
 
         <div class="row">
           <SpotCard v-for="s in rowB" :key="s.id" :id="s.id" :status="statusOf(s.id)" :disabled="s.disabled" />

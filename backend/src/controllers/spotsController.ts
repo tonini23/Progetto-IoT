@@ -22,6 +22,7 @@ export const getSpots = async (req: Request, res: Response): Promise<void> => {
         disabled: spot.spot_type === "disabled",
         occupied: spot.status ? isOccupied : null,
         distance: spot.current_distance ?? null,
+        threshold: spot.threshold_cm ?? 50,
         time: spot.last_update ? new Date(spot.last_update).getTime() : Date.now()
       }
     })
@@ -38,8 +39,22 @@ export const updateSpotReading = async (req: Request, res: Response): Promise<vo
     const { id } = req.params
     const { distance } = req.body
 
-    // Soglia in cm (se la distanza è minore di 50 cm il posto è occupato)
-    const threshold = 50
+    if (distance === undefined || typeof distance !== "number") {
+      res.status(400).json({ error: "Campo 'distance' obbligatorio e numerico" })
+      return
+    }
+
+    const [spots]: any = await connection.promise().query(
+      "SELECT threshold_cm FROM parking_spots WHERE id = ?",
+      [id]
+    )
+
+    if (spots.length === 0) {
+      res.status(404).json({ error: "Posto non trovato" })
+      return
+    }
+
+    const threshold = spots[0].threshold_cm ?? 50
     const newStatus = distance < threshold ? "BUSY" : "FREE"
 
     await connection.promise().query(
@@ -55,6 +70,28 @@ export const updateSpotReading = async (req: Request, res: Response): Promise<vo
     })
   } catch (error) {
     console.error("Errore aggiornamento lettura:", error)
+    res.status(500).json({ error: "Errore interno del server" })
+  }
+}
+
+export const updateSpotThreshold = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params
+    const { threshold } = req.body
+
+    if (threshold === undefined || typeof threshold !== "number" || threshold < 10 || threshold > 400) {
+      res.status(400).json({ error: "Inserire una soglia valida tra 10 e 400 cm" })
+      return
+    }
+
+    await connection.promise().query(
+      "UPDATE parking_spots SET threshold_cm = ? WHERE id = ?",
+      [threshold, id]
+    )
+
+    res.json({ success: true, id, threshold })
+  } catch (error) {
+    console.error("Errore aggiornamento soglia:", error)
     res.status(500).json({ error: "Errore interno del server" })
   }
 }
