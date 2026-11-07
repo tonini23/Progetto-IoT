@@ -1,9 +1,12 @@
 import express, { Express } from "express"
 import spotsRouter from "./routes/spotsRouter"
 import historyApiFallback from "connect-history-api-fallback"
+import { startMqttBroker } from "./utils/broker"
 
 const app: Express = express()
 const port: number = 3000
+
+startMqttBroker()
 
 app.use(historyApiFallback())
 
