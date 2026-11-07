@@ -57,7 +57,7 @@ const donutStyle = computed(() => {
     </div>
   </div>
 
-  // le 4 card con i numeri 
+  <!-- le 4 card con i numeri -->
   <div class="stats">
     <div class="card">
       <p class="label">CAPACITÀ TOTALE <span class="dot blue"></span></p>
@@ -82,7 +82,7 @@ const donutStyle = computed(() => {
   </div>
 
   <div class="panels">
-    // mappa del parcheggio 
+    <!-- mappa del parcheggio -->
     <div class="card">
       <p class="legend">
         <span class="dot green"></span> Libero &nbsp;
@@ -94,7 +94,7 @@ const donutStyle = computed(() => {
           <SpotCard v-for="s in rowA" :key="s.id" :id="s.id" :status="statusOf(s.id)" :disabled="s.disabled" />
         </div>
 
-        <p class="lane">&larr; INGRESSO - - - - - - - - - - - - USCITA &rarr;</p>
+        <p class="lane"> </p>
 
         <div class="row">
           <SpotCard v-for="s in rowB" :key="s.id" :id="s.id" :status="statusOf(s.id)" :disabled="s.disabled" />
@@ -102,7 +102,7 @@ const donutStyle = computed(() => {
       </div>
     </div>
 
-    // ciambella con la percentuale 
+    <!-- ciambella con la percentuale -->
     <div class="card">
       <h3>TASSO DI OCCUPAZIONE</h3>
       <div class="donut" :style="donutStyle">
