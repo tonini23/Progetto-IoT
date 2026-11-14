@@ -1,24 +1,30 @@
-from machine import Pin, time_pulse_us
+from machine import Pin, time_pulse_us, I2C
 import network
 from umqtt.simple import MQTTClient
 import time
 import ujson
+import ssd1306  
 
-# Configurazione posto
-ID_POSTO = "A-101"
-SOGLIA_CM = 50
+
+POSTI = [
+    {"id": "A-101", "trigger": Pin(5, Pin.OUT), "echo": Pin(18, Pin.IN), "soglia": 50},
+    {"id": "A-102", "trigger": Pin(4, Pin.OUT), "echo": Pin(19, Pin.IN), "soglia": 50},
+    {"id": "A-107", "trigger": Pin(22, Pin.OUT), "echo": Pin(23, Pin.IN), "soglia": 50},
+    {"id": "B-116", "trigger": Pin(32, Pin.OUT), "echo": Pin(33, Pin.IN), "soglia": 50},
+]
 
 # Configurazione MQTT
-MQTT_BROKER = "broker.emqx.io" 
-MQTT_TOPIC = "parking/spots/" + ID_POSTO
+MQTT_BROKER = "broker.emqx.io"
 
-# Configurazione dei pin
-trigger = Pin(5, Pin.OUT)
-eco = Pin(18, Pin.IN)
+# LED di stato generali 
+led_verde = Pin(12, Pin.OUT)
+led_rosso = Pin(14, Pin.OUT)
 
-led_verde = Pin(19, Pin.OUT)
-led_rosso = Pin(21, Pin.OUT)
-
+# Inizializzazione Display OLED I2C (SCL=22, SDA=21)
+i2c = I2C(0, scl=Pin(22), sda=Pin(21))
+display_width = 128
+display_height = 64
+oled = ssd1306.SSD1306_I2C(display_width, display_height, i2c)
 
 def connetti_wifi():
     print("Connessione al WiFi...", end="")
@@ -30,75 +36,75 @@ def connetti_wifi():
         print(".", end="")
     print(" Connesso!")
 
-def misura_distanza():
-    # Assicura che il trigg sia basso
+def misura_distanza(trigger, eco):
     trigger.value(0)
     time.sleep_us(2)
 
-    # invia un impulso di 10 microsecondi sul pin
     trigger.value(1)
     time.sleep_us(10)
     trigger.value(0)
     
-    # Legge la durata dell'impulso HIGH sul pin ECHO (timeout 30ms)
     durata = time_pulse_us(eco, 1, 30000)
 
     if durata < 0:
         return None
         
-        
-    # Velocità del suono: ~0.0343 cm/us (diviso 2 per andata e ritorno)
     distanza = (durata * 0.0343) / 2
     return round(distanza)
 
-
-def aggiorna_led(occupato):
-    if occupato:
-        led_rosso.value(1)
-        led_verde.value(0)
-    else:
-        led_rosso.value(0)
-        led_verde.value(1)
-
+def aggiorna_display(id_posto, distanza, occupato):
+    oled.fill(0)  # Pulisce lo schermo
+    
+    # Scrive le informazioni sullo schermo OLED
+    oled.text(f"Posto: {id_posto}", 0, 0)
+    oled.text(f"Distanza: {distanza} cm", 0, 20)
+    
+    stato_str = "OCCUPATO" if occupato else "LIBERO"
+    oled.text(f"Stato: {stato_str}", 0, 40)
+    
+    oled.mostra()  # Aggiorna il display fisico
 
 # Avvio del programma
-print("=== Avvio sensore parcheggio intelligente:", ID_POSTO, "===")
-
+print("=== Avvio sistema Smart Parking a 4 Posti con OLED ===")
 connetti_wifi()
 
 # Connessione al broker MQTT
-client = MQTTClient("esp32_" + ID_POSTO, MQTT_BROKER)
+client = MQTTClient("esp32_multi_parking", MQTT_BROKER)
 client.connect()
 print("Connesso al Broker MQTT!")
 
 while True:
+    for posto in POSTI:
+        distanza = misura_distanza(posto["trigger"], posto["echo"])
 
-    distanza = misura_distanza()
+        if distanza is not None:
+            occupato = distanza < posto["soglia"]
 
-    if distanza is not None:
+            dati = {
+                "id": posto["id"],
+                "distanza_cm": distanza,
+                "occupato": occupato
+            }
+            
+            messaggio_json = ujson.dumps(dati)
+            topic = f"parking/spots/{posto['id']}"
 
-        # Determina se il posto è occupato
-        occupato = distanza < SOGLIA_CM
+            print(f"Lettura valida [{posto['id']}]:", messaggio_json)
+            
+            # Pubblica i dati sul broker MQTT
+            client.publish(topic, messaggio_json)
+            
+            # Aggiorna il display OLED con i dati del posto corrente
+            aggiorna_display(posto["id"], distanza, occupato)
+            
+        else:
+            print(f"Errore lettura sensore per {posto['id']}")
+            oled.fill(0)
+            oled.text(f"Errore sensore", 0, 0)
+            oled.text(f"Posto: {posto['id']}", 0, 20)
+            oled.mostra()
 
-        # Aggiorna i LED
-        aggiorna_led(occupato)
+        time.sleep(1)  # Pausa tra un sensore e l'altro
 
-        # Prepara i dati da mandare al backend
-        dati = {
-            "id": ID_POSTO,
-            "distanza_cm": distanza,
-            "occupato": occupato
-        }
-        
-        messaggio_json = ujson.dumps(dati)
-
-        # Stampa i dati in formato JSON
-        print("Lettura valida:", ujson.dumps(dati))
-        # Invio dati broker MQTT
-        client.publish(MQTT_TOPIC, messaggio_json)
-
-    else:
-        print("Errore nella lettura del sensore")
-
-    # Attende 2 secondi prima della prossima misurazione
+    # Pausa prima di ripetere il ciclo per tutti i sensori
     time.sleep(2)
