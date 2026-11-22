@@ -31,7 +31,7 @@ POSTI = [
     },
     {
         "id": "A-107",
-        "trigger": Pin(25, Pin.OUT),  # Pin 25 (il 22 è usato dall'OLED!)
+        "trigger": Pin(25, Pin.OUT),  
         "echo": Pin(23, Pin.IN),
         "led_verde": Pin(13, Pin.OUT),
         "led_rosso": Pin(15, Pin.OUT),
