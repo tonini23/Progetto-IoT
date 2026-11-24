@@ -14,7 +14,7 @@ Il sistema utilizza:
 - 8 **LED di segnalazione**, 4 verdi e 4 rossi presenti nello schema del circuito.
 - Il **protocollo MQTT**, per trasmettere le letture dall'ESP32 al broker pubblico **EMQX**.
 - Un **backend Node.js/Express e TypeScript**, che riceve i messaggi MQTT, gestisce le API REST e comunica con il database.
-- Un **database MySQL/MariaDB**, che conserva le informazioni dei posti auto.
+- Un **database MySQL**, che conserva le informazioni dei posti auto.
 - Un'**interfaccia Web sviluppata con Vue.js**, per visualizzare lo stato del parcheggio.
 
 L'obiettivo è mostrare come sensori, microcontrollore, protocolli di comunicazione, backend, database e interfaccia Web possano collaborare all'interno di un unico sistema IoT.
@@ -39,7 +39,7 @@ Il flusso dei dati è organizzato nel seguente modo:
 2. Il firmware ESP32 calcola lo stato del posto e prepara un messaggio JSON.
 3. L'ESP32 pubblica il messaggio sul broker MQTT EMQX, utilizzando un topic dedicato al posto auto.
 4. Il backend Node.js si sottoscrive ai topic MQTT e riceve le letture.
-5. Il backend aggiorna la tabella `parking_spots` nel database MySQL/MariaDB.
+5. Il backend aggiorna la tabella `parking_spots` nel database MySQL.
 6. Il frontend Vue.js interroga periodicamente l'API REST `GET /api/spots` e aggiorna le informazioni mostrate nella dashboard.
 
 
@@ -77,7 +77,7 @@ I mockup qui sotto mostrano come si presenta l'interfaccia Web del progetto, con
 ### Requisiti
 
 - Node.js e npm.
-- MySQL oppure MariaDB.
+- MySQL.
 - Un browser Web.
 - Wokwi per eseguire la simulazione ESP32, oppure una scheda ESP32 compatibile con MicroPython.
 
