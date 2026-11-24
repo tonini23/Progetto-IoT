@@ -68,7 +68,7 @@ L'applicazione comprende due pagine principali:
 I dati della dashboard vengono richiesti al backend ogni due secondi.
 
 ## Mockup 
-I mockup qui sotto mostrano come si presenta l'interfaccia Web del progetto, con la dashboard principale e la visualizzazione dei posti auto
+I mockup qui sotto realizzati con Figma mostrano come si presenta l'interfaccia Web del progetto, con la dashboard principale e la visualizzazione dei posti auto
 ![Dashboard Smart Parking](smart-parking-dashboard-v2.png)
 
 ![Dashboard Smart Parking - Lista Posti ](smart-parking-dashboard-v2%20(1).png)
